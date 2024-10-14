@@ -219,18 +219,27 @@
         function chkAns(resp) {
             startQuizTimeClock();
             var Qbox = resp.parentNode;
-
+        
+            // Check if the question has already been answered
             if (!Qbox.classList.contains('Qsuccess')) {
+                // If the clicked answer has the 'correctAns' class, it's the correct answer
                 if (resp.classList.contains('correctAns')) {
-                    Qbox.classList.add('Qsuccess');
-                    quizCorrectQ = quizCorrectQ + 1;
-                } else {
-                    Qbox.classList.add('Qsuccess');
-                    resp.classList.add('wrongAns');
-                    quizWrongQ = quizWrongQ + 1;
+                    resp.style.color = 'green'; // Highlight the correct answer in green
+                    Qbox.classList.add('Qsuccess'); // Mark the question as answered
+                    quizCorrectQ++; // Increment the correct answers count
+                } 
+                // If the clicked answer is incorrect
+                else {
+                    resp.style.color = 'red'; // Highlight the incorrect answer in red
+                    Qbox.classList.add('Qsuccess'); // Mark the question as answered
+                    quizWrongQ++; // Increment the wrong answers count
+                    // Highlight the correct answer in green
+                    Qbox.querySelector('.correctAns').style.color = 'green';
                 }
             }
         }
+             
+        
 
         function viewAns(resp) {
             startQuizTimeClock();
@@ -274,39 +283,40 @@
                 console.error('Error fetching questions:', error);
             }
         }
-
         function renderQuiz(questions) {
             const quizContainer = document.getElementById('quizContainer');
             quizContainer.innerHTML = ''; // Clear the container before adding new questions
             questions.forEach((q, index) => {
                 const questionBlock = document.createElement('div');
                 questionBlock.classList.add('question-block');
-
+        
                 // Decode HTML entities (because API data comes with encoded symbols like &amp;)
                 const questionText = new DOMParser().parseFromString(q.question, 'text/html').body.textContent;
-
+        
                 let html = `<div class="qus-header">Q.${index + 1} ${questionText}</div>`;
                 const options = [...q.incorrect_answers, q.correct_answer];
                 
                 // Shuffle options
                 options.sort(() => Math.random() - 0.5);
-
+        
                 options.forEach(option => {
                     const decodedOption = new DOMParser().parseFromString(option, 'text/html').body.textContent;
-                    html += `<label onclick='chkAns(this)'>${decodedOption}</label>`;
+                    // Add 'correctAns' class to the correct answer
+                    const isCorrect = decodedOption === q.correct_answer ? 'correctAns' : '';
+                    html += `<label class="${isCorrect}" onclick='chkAns(this)'>${decodedOption}</label>`;
                 });
-
+        
                 html += `
                     <div class="qus-ftr hide-sol">
                         <span class="view-answer" onclick='viewAns(this)'>View Answer</span>
                         <div class="sol-answer"><span style="color: #4caf50;">Ans. ${q.correct_answer}</span></div>
                     </div>`;
-
+        
                 questionBlock.innerHTML = html;
                 quizContainer.appendChild(questionBlock);
             });
         }
-
+        
         // Initialize Quiz by fetching random questions
         fetchRandomQuestions();
 
